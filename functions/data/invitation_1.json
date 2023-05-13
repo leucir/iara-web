@@ -1,0 +1,26 @@
+[
+    {
+        "inviter": "luciano@compras.com",
+        "invitee": "leucir@gmail.com",
+        "inviteePhone" : "+15128176956",
+        "inviteeFirstName": "John",
+        "inviteeLastName": "Noarms",
+        "status": "pending",
+        "createdAt": "2015-01-01T00:00:00Z",
+        "updatedAt": "2015-01-01T00:00:00Z",
+        "expiresAt": "2015-01-01T00:00:00Z",
+        "message": "Hello, would you like to be my friend?"
+    },
+    {
+        "inviter": "pedro@compras.com",
+        "invitee": "leucir@gmail.com",
+        "inviteePhone" : "+15128176956",
+        "inviteeFirstName": "John",
+        "inviteeLastName": "Noarms",
+        "status": "pending",
+        "createdAt": "2015-01-01T00:00:00Z",
+        "updatedAt": "2015-01-01T00:00:00Z",
+        "expiresAt": "2015-01-01T00:00:00Z",
+        "message": "Hello, would you like to be my friend?"
+    }
+]

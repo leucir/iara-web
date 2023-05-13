@@ -1,0 +1,25 @@
+# Intent 
+
+## 1
+
+I'd like to cancel my subscription because of the high costs. I'd love to extend it if I had some discounts for the next 3 weeks though.
+
+high-cost = retain
+extend = retain
+bad quality = decline
+
+Q. Based on the intent of this statement, what should I do with the request, using one word?
+
+
+## 2
+
+I'm trying to cancel my subscription but the website is not working. I'm not happy with the service. It has a lot of interruptions and eventually it fails.
+
+tokens
+high-cost = retain
+extend = retain
+bad quality = decline
+
+Q. Based on the intent of this statement, what should I do with the request, using one word?
+
+## 3

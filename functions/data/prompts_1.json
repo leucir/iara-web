@@ -1,0 +1,17 @@
+{
+    "type": "realstate",
+    "prompts": [
+        {
+            "id": "en_us_introduce_realstate_1",
+            "lang": "EN_US",
+            "short": "introduce",
+            "corpus": "introduce a real state opportunity to {family_size} families and {budget} budgets in {city}, {state}. ###"
+        },
+        {
+            "id" : "pt_br_introduce_realstate_1",
+            "lang": "PT_BR",
+            "short": "introduce",
+            "corpus": "apresente o empreedimento que seja ideal para uma familia de {family_size} and um orçamento {budget}, na cidade de {city}, {state}. ###"
+        }
+    ]
+}
