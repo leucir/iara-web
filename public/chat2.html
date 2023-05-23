@@ -1,0 +1,89 @@
+<!DOCTYPE HTML>
+<HTML>
+<head>
+    <title>Virtual Assistant</title>
+    <style>
+        body {
+            background-color: #F3F3F3;
+            font-family: Arial;
+        }
+        #chatbox {
+            width: 500px;
+            margin: 0 auto;
+            padding: 10px;
+            background-color: #F7F7F7;
+            border-radius: 10px;
+            box-shadow: 0px 0px 4px #999;
+        }
+        #input-area {
+            width: 100%;
+            margin: 20px 0;
+        }
+        #text-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #999;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        #send-button {
+            padding: 10px;
+            background-color: #F17A00;
+            color: #FFF;
+            border-radius: 5px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        #record-button {
+            padding: 10px;
+            background-color: #E73F00;
+            color: #FFF;
+            border-radius: 5px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        #messages {
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+        #messages img {
+            width: 100%;
+        }
+        #messages em {
+            font-style: italic;
+        }
+    </style>
+    <script>
+        function sendMessage() {
+            // Get the text from the input
+            var text = document.getElementById('text-input').value;
+            // Check if there is any text
+            if (text.length == 0) {
+                return;
+            }
+            // Create an element to show the message
+            var messageElement = document.createElement('div');
+            messageElement.innerHTML = '<div id="messages"><em>You:</em> ' + text + '</div>';
+            // Add the message to the chatbox
+            document.getElementById('chatbox').appendChild(messageElement);
+            // Clear the textbox
+            document.getElementById('text-input').value = '';
+        }
+    </script>
+</head>
+<body>
+    <div id="chatbox">
+        <div id="messages">
+            <em>Virtual Assistant:</em> Hi, how can I help you?
+        </div>
+    </div>
+    <div id="input-area">
+        <input type="text" id="text-input" placeholder="Type your message here..." />
+        <button id="send-button" onclick="sendMessage()">Send</button>
+        <button id="record-button">Record</button>
+    </div>
+</body>
+</html>
