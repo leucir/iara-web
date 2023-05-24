@@ -1,0 +1,3 @@
+[LEUCIR] 2023-05-23
+* updated SALES_PITCH in the props_1.txt file
+* updated diagrams
