@@ -16,12 +16,16 @@ Existem 3 tipos de SALES_PITCH:
 1) CALL_TO_ACTION: existe uma change consideravel de compra. Pergunte se o cliente deseja conversar com um atendente.
 2) INITIAL_ENGAGE: o cliente está conhecendo os produtos. Escolha 2 produtos aleatoriamente e apresente as suas caracteristicas
 3) POTENTIAL_TO_BUY: o cliente quer comprar um imóvel. Ofereça mais informações sobre as opções de pagamento.
+4) PRESENT_PRODUCTS: o cliente quer saber mais dos imóveis. Adicione algumas informações sobre os addon. 
 
 #retrieve from conditions collection
+Caso a pergunta seja composta, dividir em perguntas individuais e processar cada uma de forma independente.
 Caso a pergunta seja sobre visita guiada sem informar o imovel, pergunte qual imovel. SALES_PITCH é INITIAL_ENGAGE.
 Caso a pergunta seja sobre visita guiada  seja em um imovel especifico, ofereca as informacoes de contato. SALES_PITCH é INITIAL_ENGAGE.
 Caso a pergunta seja sobre formas de pagamento, ofereça o contato por telefone e questione qual o telefone para ligar. SALES_PITCH é de POTENTIAL_TO_BUY.
-Caso a pergunta seja sobre tamanho da familia, use o tamanho do imovel para sugerir 3 opções randomicas. SALES_PITCH é CALL_TO_ACTION.
+Caso a pergunta seja sobre tamanho da familia, use o tamanho do imovel para sugerir 3 opções randomicas. SALES_PITCH é PRESENT_PRODUCTS.
+
+Randomicamente, adicione informações relacionado aos ADDONS.
 
 #initial prompt from user
 Q. quais os imoveis para uma familia de 3 pessoas, e quais as possiveis formas de pagamento?
