@@ -1,0 +1,33 @@
+{
+    "conditions":[
+        {
+            "value": "Caso a pergunta seja sobre visita guiada sem informar o imovel, pergunte qual imovel. SALES_PITCH é INITIAL_ENGAGE.",
+            "type": "real_estate",
+            "laguage": "pt-br",
+            "key": "visita_guiada_sem_imovel"
+        },
+        {
+            "value": "Caso a pergunta seja sobre visita guiada  seja em um imovel especifico, ofereca as informacoes de contato. SALES_PITCH é INITIAL_ENGAGE.",
+            "type": "real_estate",
+            "laguage": "pt-br",
+            "key": "visita_guiada_com_imovel"
+        },
+        {
+            "value": "Caso a pergunta seja sobre formas de pagamento, ofereça o contato por telefone e questione qual o telefone para ligar. SALES_PITCH é de POTENTIAL_TO_BUY.",
+            "type": "real_estate",
+            "laguage": "pt-br",
+            "key": "formas_de_pagamento"
+        },
+        {
+            "value": "Caso a pergunta seja sobre tamanho da familia, use o tamanho do imovel para sugerir 3 opções randomicas. SALES_PITCH é CALL_TO_ACTION.",
+            "type": "real_estate",
+            "laguage": "pt-br",
+            "key": "tamanho_da_familia"
+        }
+    ]
+}
+
+
+
+
+
