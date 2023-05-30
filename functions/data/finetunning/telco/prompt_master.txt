@@ -1,0 +1,19 @@
+Gere um arquivo de fine-tunning para o modelo davinci do OpenAI em JSONL, que contenha 50 prompts e respectivos completion relacionados as fases de exploração pelo potential cliente, com chances reais de compra do produto. Seja criativo.
+
+O conteúdo deve ser gerado em português.
+
+Use o texto abaixo para auxiliar na criação do conteúdo.
+
+Claro BOX TV+ com Alexa Inclusa, R$ 99,90 mas por 3 meses sairá por R$ 69,99. Aparelho conecta via Wifi ou cabo, pode ser conectado em qualquer lugar do 🇧🇷, após a instalação você pode leva-lo. Pausa, Grava, comando de Voz, é uma tecnologia nova e única. Pode ser usada qualquer internet desde que seja boa e de qualidade para uso do aparelho, além do aparelho você terá também acesso a mesma tecnologia do Claro APP +, citado acima.
+
+Claro BOX TV+ TELECINE com Alexa Inclusa, R$ 129,90 mas por 3 meses sairá por R$ 99,90. Aparelho conecta via Wifi ou cabo, pode ser conectado em qualquer lugar do 🇧🇷, após a instalação você pode leva-lo. Pausa, Grava, comando de Voz, é uma tecnologia nova e única. Pode ser usada qualquer internet desde que seja boa e de qualidade para uso do aparelho, além do aparelho você terá também acesso a mesma tecnologia do Claro APP +, citado acima.
+
+Consulte comigo os valores de pontos adicionais, A La Carte e produtos adicionais.
+
+Instalação grátis  e o primeiro pagamento apenas para o próximo mês de acordo com os dias utilizados. Fidelidade de 12 meses a partir do dia da instalação.
+
+Wifi Claro: Banda Larga Fibra (Internet Residencial).
+-  1 GB por R$ 204,90 mas em débito em conta R$ 199,90.
+- 500 MB por R$ 104,90 mas em débito em conta R$ 99,90.
+- 250 MB por R$ 94,90 mas em débito em conta R$ 89,90.
+- 125 MB por R$ 84,90 mas em débito em conta R$ 79,90.
