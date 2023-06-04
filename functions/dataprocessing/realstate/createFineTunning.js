@@ -1,5 +1,7 @@
 const format = require("string-template");
 
+console.log("Current directory:", process.cwd()); 
+
 exports.putContext= async (id, params) => {
     const writeResult = await contextsDb.doc(id).set({
         short: params.data.short,
@@ -43,36 +45,31 @@ exports.parseContext = (original, params) => {
 }
 
 
-exports.populate = async () => {
+createFineTunningFile = async () => {
 
     'use strict';
 
     const fs = require('fs');
     
-    let productsdata = fs.readFileSync('./data/products_1.json');
+    //retrieve products
+    let productsdata = fs.readFileSync('./functions/data/products_1.json');
     let jsonProducts = JSON.parse(productsdata);
 
-    let contextData = fs.readFileSync('./data/contexts_1.json');
-    let jsonContext = JSON.parse(contextData);
+    //retrieve contexts from template
+    let contextData = fs.readFileSync('./functions/data/finetunning/realestate/fine_tune_davinci_1_realstate_template.jsonl');
 
+    //loop through products
     for(var itemProd in jsonProducts.products){
         var prod = jsonProducts.products[itemProd];
 
-        var result= "";
-        for(var itemContext in jsonContext.contexts){
-            var context = jsonContext.contexts[itemContext];
+        console.log(prod);
 
-            var corpusWithParams = format(context.corpus, prod);
+        var corpusWithParams = format(contextData.toString(), prod);
 
-            var cxtObjects = {
-                data: {
-                    short: context.short,
-                    lang: context.lang,
-                    corpus: corpusWithParams
-                }
-            };
-
-            this.putContext(prod.id, cxtObjects);
+        //append the context to a file called fine-tunning.jsonl
+        fs.appendFileSync('./functions/data/finetunning/realestate/fine_tune_davinci_1_realstate_final.jsonl', corpusWithParams + "\n");
         }
-    }
 }
+
+
+createFineTunningFile();
