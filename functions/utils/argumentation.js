@@ -6,7 +6,7 @@ const { products } = require("../data/products_1.json");
 
 const getArgumentation = (history='',max_tokens=100) => {
   let argumentation =
-    'Olá, preciso que lembre deste seguinte contexto para uma conversa sobre empreeendimentos imobiliários: \"{product}\". ' +
+    'Olá, preciso que lembre deste seguinte contexto para uma conversa sobre empreeendimentos imobiliários: \"{products}\". ' +
     'Addon: As farmácias mais próximas aos empreendimentos imobiliários da Quadra 102 são a Farmácia Pague Menos (61 3314-1000), a Farmácia Droga Raia (61 3314-1000). '+
     'Addon: Os empreendimentos imobiliários da quadra 102 estão próximos às seguintes escolas de segundo grau: Escola Estadual Profa. Leda Nakano, Colégio Estadual Carlos Drummond de Andrade, Escola Estadual Prof. Ernesto de Castro, Escola Estadual Prof. Amadeu Silva e Escola Estadual Prof. Francisco de Souza. Algumas escolas não foram incluidas nesta lista.'+
     'Addon: Os empreendimentos imobiliários estão sendo financiados preferencialmente pelo Itau e Bradesco. Não informar outros bancos.'+
@@ -23,10 +23,10 @@ const getArgumentation = (history='',max_tokens=100) => {
     'Tambeḿ, quero que continue a conversa a partir desse histórico de conversa: \"{history}\"'
 
 
-  const product = format(contexts[0].corpus, products[0]);
   const conditionsText = conditions.map(c=>c.value).join('\n');
+  const allProducts = products.map(p=>format(contexts[0].corpus, p)).join(", ");
 
-  argumentation = format(argumentation, { product, conditionsText, history, max_tokens });
+  argumentation = format(argumentation, { products: allProducts, conditionsText, history, max_tokens });
 
   return argumentation;
 };
