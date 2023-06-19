@@ -7,6 +7,8 @@
     "gpt-3-encoder": "^1.1.4",
     "openai": "^3.2.1",
     "string-template": "^1.0.0",
-    "vectra": "^0.1.2"
+    "vectra": "^0.1.2",
+    "langchain": "0.0.95",
+    "serpapi": "^1.1.1"
   }
 }

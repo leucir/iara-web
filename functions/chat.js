@@ -2,6 +2,11 @@ require("dotenv").config();
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const cors = require('cors')({origin: true});
+const {PromptTemplate, PipelinePromptTemplate} = require("langchain/prompts");
+
+const limits = require("./db/limits-db");
+const addons = require("./db/addons-db");
+const products = require("./db/products-db");
 
 const completions = require("./completions");
 const { getArgumentation } = require("./utils/argumentation");
@@ -21,3 +26,79 @@ exports.chat = functions.https.onRequest(async (req, res) => {
     res.json({ result: response.data.choices[0].text, nTokens, historyTalk });
   })
 });
+
+
+exports.chat2 = functions.https.onRequest(async (req, res) => {
+  cors(req, res, async () => {
+
+    //Use langchain to orchestrate the agents
+    
+    //retrieve input from the request
+    const input = req.body.input;
+
+    const fullPrompt = PromptTemplate.fromTemplate("{limits_generic} " +
+    "{introduction} " + 
+    "{list_of_products}" +
+    "{addons} " +
+    "{supported_topics} " +
+    "{limits_around_topics} "
+    );
+
+    const introductionPrompt = PromptTemplate.fromTemplate('{introduction}');
+    const listOfProductsPrompt = PromptTemplate.fromTemplate('{list_of_products}');
+    const addonsPrompt = PromptTemplate.fromTemplate('{addons}');
+    const supportedTopicsPrompt = PromptTemplate.fromTemplate('{supported_topics}');
+    const limitsAroundTopicsPrompt = PromptTemplate.fromTemplate('{limits_around_topics}');
+    const limitsGenericPrompt = PromptTemplate.fromTemplate('x {limits_generic}');
+
+    const composedPrompt = new PipelinePromptTemplate({
+      pipelinePrompts: [
+        {
+          name: "introduction",
+          prompt: introductionPrompt,
+        },
+        {
+          name: "list_of_products",
+          prompt: listOfProductsPrompt,
+        },
+        {
+          name: "addons",
+          prompt: addonsPrompt,
+        },
+        {
+          name: "supported_topics",
+          prompt: supportedTopicsPrompt,
+        },
+        {
+          name: "limits_around_topics",
+          prompt: limitsAroundTopicsPrompt,
+        },
+        {
+          name: "limits_generic",
+          prompt: limitsGenericPrompt,
+        },
+      ],  
+      finalPrompt: fullPrompt,
+    });
+
+    const formattedPrompt = await composedPrompt.format({
+      limits_generic: await limits.getLimits("realestate", "pt_br"),
+      introduction: "this is an introduction",
+      list_of_products: products.getProductsUsingEmbedding(input),
+      addons: await addons.getAddons("noroeste"),
+      supported_topics: "Supported topics from the products",
+      limits_around_topics: "Limits around topics from the products",
+    });
+
+    console.log(formattedPrompt);
+
+    res.end();
+
+      //Call LLM service
+      //const response = await completions.textCompletionsDavinciSdk(formattedPrompt, {temperature: 0.1});
+
+      //Send back the response
+      //res.json({ result: response.data.choices[0].text });
+    
+    }) //end of cors
+  }); //end of exports.chat2

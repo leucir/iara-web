@@ -1,3 +1,9 @@
+/*
+    This script is only to generate embeddings.
+    There is another script to query the embeddings.
+    It is located at functions/db/embedding-vector.js
+*/
+
 const { Configuration, OpenAIApi } = require("openai");
 const { LocalIndex } = require('vectra');
 const path = require('path');
@@ -11,7 +17,7 @@ const EMBEDDING_INDEX_FOLDER = './functions/embeddings';  //where the embeddings
 
 // Create OpenAI API client
 const configuration = new Configuration({
-    apiKey: process.env.OPENAI_API_KEY,
+    apiKey: "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",
 });
 
 const api = new OpenAIApi(configuration);
@@ -23,23 +29,6 @@ async function getVector(text) {
     });
     return response.data.data[0].embedding;
 }
-
-// create a async function to get a vector embedding from the vectra index
-const readEmbeddings = async (sentence, indexName, numResponses=3) => {
-
-    // Create local index
-    const index = new LocalIndex(path.join(EMBEDDING_INDEX_FOLDER, indexName));
-
-    // Initialize index if it doesn't exist
-    if (!await index.isIndexCreated()) {
-        await index.createIndex();
-    }
-
-    // Query the index
-    const vector = await getVector(sentence);
-    const results = await index.queryItems(vector, numResponses);
-    return results;
-};
 
 //Create an async function to write embeddings to the vectra index
 const writeEmbeddings = async (text, indexName) => {
@@ -104,15 +93,6 @@ const refreshEmbeddings = async (pContext) => {
     createEmbeddings(dataFullPath, indexNamePrefix);
 };
 
-const queryEmbeddings = async (pContext, pEntityName, pQuery, numResponses=3) => {
-    console.log(`\x1b[32mRetrieving embeddings for ${pContext.offeringID} ${pContext.domainType}.\x1b[0m`);
-
-    indexName = pContext.offeringID + '_' + pContext.domainType + '_' + pEntityName;
-    const qResults = await readEmbeddings(pQuery, indexName, numResponses);
-
-    return qResults;
-};
-
 //Util function to remove the extension of a filename
 const removeExtension = (filename) => {
     return filename.split('.').slice(0, -1).join('.');
@@ -125,13 +105,12 @@ const getEmbeddingsDataFullPath = (pContext) => {
 
 
 exports.refreshEmbeddings = refreshEmbeddings;
-exports.queryEmbeddings = queryEmbeddings;
 
 //CODE BELOW IS FOR TESTING PURPOSES ONLY
 
 const context = {
     clientUUID : "9823dfd-2323-2323-2323-2323232323",
-    offeringID : "offering_sample",
+    offeringID : "offering_noroeste",
     domainType : "realestate",
     entities: [
         'products',
@@ -139,24 +118,4 @@ const context = {
         'construtoras',
         'products_extra'
     ]
-};
-
-
-
-//refreshEmbeddings(context);
-queryEmbeddings(context, 'products', 'apartamento')
-.then((x) => {
-    console.log(x);
-});
-
-
-//write a function to generate a unique id of 12 characters, in lowercase, using the following characters: abcdefghijklmnopqrstuvwxyz0123456789
-const generateId = () => {
-    const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
-    let id = '';
-    for (let i = 0; i < 12; i++) {
-        const index = Math.floor(Math.random() * chars.length);
-        id += chars[index];
-    }
-    return id;
 };

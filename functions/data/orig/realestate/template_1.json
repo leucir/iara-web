@@ -1,0 +1,4 @@
+{
+    "template": "default",
+    "value": "O imóvel {Empreendimento} do Tipo {Tipo} tem {Quartos} quartos e {Suites} suites. Localizado na quadra {Quadra} bloco {Bloco}. Com metragem entre {Menor}m² e {Maior}m². O valor varia entre R$ {Valor_menor} e R$ {Valor_maior}. Construido pela {Construtora}."
+}

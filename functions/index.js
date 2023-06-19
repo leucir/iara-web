@@ -32,3 +32,6 @@ exports.products = products;
 
 const helpers = require("./helpers");
 exports.helpers = helpers;
+
+const chain = require("./chain");
+exports.chain = chain;

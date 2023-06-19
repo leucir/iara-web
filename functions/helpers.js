@@ -13,7 +13,7 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-const app = admin.initializeApp(firebaseConfig);
+//const app = admin.initializeApp(firebaseConfig);
 //const analytics = admin.getAnalytics(app);
 
 require("dotenv").config();
