@@ -7,6 +7,7 @@ const {PromptTemplate, PipelinePromptTemplate} = require("langchain/prompts");
 const limits = require("./db/limits-db");
 const addons = require("./db/addons-db");
 const products = require("./db/products-db");
+const supported_topics = require("./db/supported-topics-db");
 
 const completions = require("./completions");
 const { getArgumentation } = require("./utils/argumentation");
@@ -31,17 +32,30 @@ exports.chat = functions.https.onRequest(async (req, res) => {
 exports.chat2 = functions.https.onRequest(async (req, res) => {
   cors(req, res, async () => {
 
-    //Use langchain to orchestrate the agents
-    
+    const context = {
+      clientUUID : "9823dfd-2323-2323-2323-2323232323",
+      offeringID : "offering_noroeste",
+      domainType : "realestate",
+      entities: [
+          'products',
+          'contato',
+          'construtoras',
+          'products_extra'
+      ]
+    };
+
     //retrieve input from the request
     const input = req.body.input;
 
-    const fullPrompt = PromptTemplate.fromTemplate("{limits_generic} " +
-    "{introduction} " + 
-    "{list_of_products}" +
-    "{addons} " +
+    const fullPrompt = PromptTemplate.fromTemplate("" +
     "{supported_topics} " +
-    "{limits_around_topics} "
+    "{limits_generic} " +
+    "{introduction} " + 
+    "{list_of_products} " +
+    "{addons} " +
+    "{limits_around_topics} " +
+    " ###" +
+    input
     );
 
     const introductionPrompt = PromptTemplate.fromTemplate('{introduction}');
@@ -49,10 +63,14 @@ exports.chat2 = functions.https.onRequest(async (req, res) => {
     const addonsPrompt = PromptTemplate.fromTemplate('{addons}');
     const supportedTopicsPrompt = PromptTemplate.fromTemplate('{supported_topics}');
     const limitsAroundTopicsPrompt = PromptTemplate.fromTemplate('{limits_around_topics}');
-    const limitsGenericPrompt = PromptTemplate.fromTemplate('x {limits_generic}');
+    const limitsGenericPrompt = PromptTemplate.fromTemplate('{limits_generic}');
 
     const composedPrompt = new PipelinePromptTemplate({
       pipelinePrompts: [
+        {
+          name: "supported_topics",
+          prompt: supportedTopicsPrompt,
+        },
         {
           name: "introduction",
           prompt: introductionPrompt,
@@ -66,10 +84,6 @@ exports.chat2 = functions.https.onRequest(async (req, res) => {
           prompt: addonsPrompt,
         },
         {
-          name: "supported_topics",
-          prompt: supportedTopicsPrompt,
-        },
-        {
           name: "limits_around_topics",
           prompt: limitsAroundTopicsPrompt,
         },
@@ -81,24 +95,30 @@ exports.chat2 = functions.https.onRequest(async (req, res) => {
       finalPrompt: fullPrompt,
     });
 
+    const limitsGeneric = await limits.getLimits("realestate", "pt_br");
+    const listOfProducts = await products.getProductsUsingEmbedding(context, input)
+    const addOns = await addons.getAddons("offering_noroeste");
+    const supportedTopics = await supported_topics.getSupportedTopics("offering_noroeste");
+
     const formattedPrompt = await composedPrompt.format({
-      limits_generic: await limits.getLimits("realestate", "pt_br"),
-      introduction: "this is an introduction",
-      list_of_products: products.getProductsUsingEmbedding(input),
-      addons: await addons.getAddons("noroeste"),
-      supported_topics: "Supported topics from the products",
-      limits_around_topics: "Limits around topics from the products",
+      supported_topics: supportedTopics,
+      limits_generic: limitsGeneric,
+      introduction: "",
+      list_of_products: listOfProducts,
+      addons: addOns,
+      limits_around_topics: "",
     });
 
     console.log(formattedPrompt);
 
-    res.end();
+    //res.send(formattedPrompt);
+    //res.end();
 
       //Call LLM service
-      //const response = await completions.textCompletionsDavinciSdk(formattedPrompt, {temperature: 0.1});
+      const response = await completions.textCompletionsDavinciSdk(formattedPrompt, {temperature: 0.1});
 
       //Send back the response
-      //res.json({ result: response.data.choices[0].text });
+      res.json({ result: response.data.choices[0].text });
     
     }) //end of cors
   }); //end of exports.chat2

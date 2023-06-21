@@ -119,3 +119,5 @@ const context = {
         'products_extra'
     ]
 };
+
+refreshEmbeddings(context);

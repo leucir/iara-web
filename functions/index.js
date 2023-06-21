@@ -35,3 +35,6 @@ exports.helpers = helpers;
 
 const chain = require("./chain");
 exports.chain = chain;
+
+const operationsEmbeddings = require("./embeddings_route");
+exports.operationsEmbeddings = operationsEmbeddings;
