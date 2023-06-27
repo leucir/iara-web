@@ -2,7 +2,9 @@ const format = require("string-template");
 const { conditions } = require("../data/conditions_1.json");
 const prompt = require("../data/prompts_1.json");
 const { contexts } = require("../data/contexts_1.json");
-const { products } = require("../data/products_1.json");
+
+let { products } = require("../data/products_1.json");
+products = [products[0]];
 
 const getArgumentation = (history='',max_tokens=100) => {
   let argumentation =
@@ -18,6 +20,7 @@ const getArgumentation = (history='',max_tokens=100) => {
     'Randomicamente, adicione informações relacionado aos ADDONS.'+
     'Caso a pergunta não esteja relacionado a lista de supported_topics, responda educadamente que a pergunta não pode se respondida no momento.'+
     'Não responda o que não se pode responder. '+
+    'Qunado for mencionar sobre as imagens dos imóveis, afirme desse jeito \"As imagens do imóvel estão logo abaixo\", só exiba os links qunado for pedido'
     '"NÃO RESPONDA COM TEXTOS OU PALAVRAS TRUNCADAS", responda com um texto legível, com um início, meio e fim que faça sentido, dentro do número máximo de tokens, que é de {max_tokens}, sendo o token calculado pelos critérios da OpenAi. Caso sua resposta inicial ultrapasse a limite máximo de tokens, refine e resume até que chegue no limite, podendo descartar algumas informações, palavras, ou sentenças que ficariam truncadas ou causaria truncamento no final do texto' +
     '{coditionsText}'+
     'Tambeḿ, quero que continue a conversa a partir desse histórico de conversa: \"{history}\"'

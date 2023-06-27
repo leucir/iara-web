@@ -17,7 +17,7 @@ exports.textCompletionsDavinciSdk = (async (promptCorpus, modelParams={}) => {
         model: "text-davinci-003",
         prompt: promptCorpus,
         temperature: modelParams.temperature || 0.7,
-        max_tokens: modelParams.max_tokens || 100,
+        max_tokens: modelParams.max_tokens || 500,
         top_p: 1,
         frequency_penalty: 0,
         presence_penalty: 0,

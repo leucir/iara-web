@@ -4,7 +4,7 @@
         {
         "lang": "PT_BR",
         "short": "introduce",
-        "corpus": "O empreedimento {Empreendimento} localizado na quadra {Quadra} com {Quartos} quartos, com metragens de {Metragem} e apartamentos do tipo {Tipo} estão disponives. Entre em contato conosco através do telefone {Telefone}. Nós da construtora {Construtora} estamos prontos para atende-lo."
+        "corpus": "O empreedimento {Empreendimento} localizado na quadra {Quadra} com {Quartos} quartos, com metragens de {Metragem} e apartamentos do tipo {Tipo} estão disponives, com as seguintes imagens {Imagens}. Entre em contato conosco através do telefone {Telefone}. Nós da construtora {Construtora} estamos prontos para atende-lo."
         }
     ]
 }
