@@ -1,6 +1,7 @@
 const admin = require('firebase-admin');
 const db = admin.firestore();
 
+const embeddingVector = require('./embedding-vector');
 const productsDb = db.collection('products');
 
 const VECTOR_INDEX = "products";
@@ -44,4 +45,24 @@ exports.getProducts = async () => {
 
     return snapshot;
 
+}
+
+exports.getProductsUsingEmbedding = async (context, query, numResponses=3) => {
+
+    //check if query is empty. If not, get the embedding vector. If yes throw an error
+    if(query === ""){
+        throw new Error("query is empty");
+    }
+
+    const queryVector = await embeddingVector.queryEmbeddings(context, VECTOR_INDEX, query, numResponses);
+    console.log('entries found: '+ queryVector.length);
+
+    resultDocs = [];
+
+    //interate over entries
+    queryVector.forEach((entry) => {
+        resultDocs.push(entry.item.metadata.text);
+    }); 
+
+    return resultDocs;
 }
