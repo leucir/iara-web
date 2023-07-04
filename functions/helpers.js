@@ -18,7 +18,7 @@ const firebaseConfig = {
 
 require("dotenv").config();
 
-const completions = require("./completions");
+const completions = require("./modelProviderOpenAI");
 const edits = require("./edits");
 
 const invitations = require("./invitations");

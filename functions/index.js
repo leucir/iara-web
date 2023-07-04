@@ -18,7 +18,7 @@ const firebaseConfig = {
 const app = admin.initializeApp(firebaseConfig);
 //const analytics = admin.getAnalytics(app);
 
-const completions = require("./completions");
+const completions = require("./modelProviderOpenAI");
 const edits = require("./edits");
 
 const invitations = require("./invitations");

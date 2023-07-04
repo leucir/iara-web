@@ -39,16 +39,13 @@ const readEmbeddings = async (sentence, indexName, numResponses=3) => {
 
 
 const queryEmbeddings = async (pContext, pEntityName, pQuery, numResponses=3) => {
-    console.log(`\x1b[32mRetrieving embeddings for ${pContext.offeringID} ${pContext.domainType}.\x1b[0m`);
+    console.log(`\x1b[32mRetrieving embeddings for ${pContext.offering.offeringID} ${pContext.offering.domainType}.\x1b[0m`);
 
-    indexName = pContext.offeringID + '_' + pContext.domainType + '_' + pEntityName;
+    indexName = pContext.offering.offeringID + '_' + pContext.offering.domainType + '_' + pEntityName;
     const qResults = await readEmbeddings(pQuery, indexName, numResponses);
 
     return qResults;
 };
-
-exports.queryEmbeddings = queryEmbeddings;
-
 
 //Create an async function to write embeddings to the vectra index
 const writeEmbeddings = async (text, indexName) => {
@@ -108,11 +105,11 @@ const countTokens = (async (text) => {
 
 //Function to refresh the embeddings
 const refreshEmbeddings = async (pContext) => {
-    console.log(`\x1b[32mRefreshing embeddings for ${pContext.offeringID} ${pContext.domainType}.\x1b[0m`);
+    console.log(`\x1b[32mRefreshing embeddings for ${pContext.offering.offeringID} ${pContext.offering.domainType}.\x1b[0m`);
 
     dataFullPath = getEmbeddingsDataFullPath(pContext);
 
-    indexNamePrefix = pContext.offeringID + '_' + pContext.domainType;
+    indexNamePrefix = pContext.offering.offeringID + '_' + pContext.offering.domainType;
     createEmbeddings(dataFullPath, indexNamePrefix);
 };
 
@@ -124,9 +121,9 @@ const removeExtension = (filename) => {
 
 //Util function to get the full path of the embeddings
 const getEmbeddingsDataFullPath = (pContext) => {
-    console.log(`\x1b[32mGetting embeddings data full path for ${pContext.offeringID} ${pContext.domainType}.\x1b[0m`);
-    return path.join(__dirname,'..',EMBEDDING_DATA_FOLDER, pContext.offeringID, pContext.domainType);
+    console.log(`\x1b[32mGetting embeddings data full path for ${pContext.offering.offeringID} ${pContext.offering.domainType}.\x1b[0m`);
+    return path.join(__dirname,'..',EMBEDDING_DATA_FOLDER, pContext.offering.offeringID, pContext.offering.domainType);
 };
 
-
+exports.queryEmbeddings = queryEmbeddings;
 exports.refreshEmbeddings = refreshEmbeddings;

@@ -1,11 +1,11 @@
 const offeringTopics = [{
     "offeringId": "offering_noroeste",
-    "topics" :"empreendimento imobiliarios, apartamentos, noroeste de Brasilia, farmacias, escolas, bancos, financiamento"
+    "topics" :"[empreendimento imobiliarios, apartamentos, noroeste de Brasilia, farmacias, escolas, bancos, financiamento]"
 }];
 
 exports.getSupportedTopics = async function(offeringId) {
 
-    const SUPPORT_TOPICS_PREFIX = 'supported_topics_: ';
+    const SUPPORT_TOPICS_PREFIX = 'supported_topics_ = ';
 
     //TODO: this code will query from the DB in the future
 

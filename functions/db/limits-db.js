@@ -1,7 +1,12 @@
 const limitsFromDB = [{
     "type": "realestate",
     "lang": "pt_br",
-    "limit" :"Caso a pergunta não esteja relacionado a lista de supported_topics_ , responda educadamente que a pergunta não pode se respondida no momento. Não responda o que não se pode responder."
+    "limit" :"Você deve respeitar os topicos definidos na lista supported_topics_." +
+    "\n"+
+    "Caso a pergunta não esteja relacionado a lista de supported_topics_ , responda educadamente que a pergunta não pode se respondida no momento." +
+    "\n"+
+    "Não ofereça informações adicionais. Não responda o que não se pode responder." +
+    "\n"
 }];
 
 exports.getLimits = async function(type, lang) {
