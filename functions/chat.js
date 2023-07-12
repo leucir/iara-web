@@ -5,6 +5,9 @@ const cors = require('cors')({origin: true});
 const {PromptTemplate, PipelinePromptTemplate, SystemMessagePromptTemplate, HumanMessagePromptTemplate, ChatPromptTemplate} = require("langchain/prompts");
 const {ChatOpenAI} = require("langchain/chat_models/openai");
 const {HumanChatMessage, AIChatMessage, SystemChatMessage} = require("langchain/schema");
+const {BufferMemory} = require("langchain/memory");
+const {DynamoDBChatMessageHistory} = require("langchain/stores/message/dynamodb");
+const {ConversationChain} = require("langchain/chains");
 
 const introduction = require("./db/introduction-db");
 const limits = require("./db/limits-db");
@@ -133,7 +136,7 @@ exports.chat2 = functions.https.onRequest(async (req, res) => {
     cors(req, res, async () => {
 
       //retrieve input from the request
-      const input = req.body.input;
+      const input = req.query.text;
 
       const context = {
         clientUUID : "9823dfd-2323-2323-2323-2323232323",
@@ -185,8 +188,86 @@ exports.chat2 = functions.https.onRequest(async (req, res) => {
         }),
       ]);
 
+
+      //TODO check if the response is valid, otherwise return an standard answer
+
       //Send back the response
       res.json({ result: responseA });
 
     }) //end of cors
   }); //end of exports.chat3
+
+
+  exports.v4 = functions.https.onRequest(async (req, res) => {
+    cors(req, res, async () => {
+
+      //retrieve input from the request
+      const input = req.query.input;
+
+      const context = {
+        clientUUID : "9823dfd-2323-2323-2323-2323232323",
+        offering :
+        {
+          offeringID : "offering_noroeste",
+          domainType : "realestate",
+          lang: "pt_br",
+          uxID: "TRY_BUY",
+          entities: [
+            'products',
+            'contato',
+            'construtoras',
+            'products_extra',
+          ]
+        }
+      };
+
+      const memory = new BufferMemory({
+        chatHistory: new DynamoDBChatMessageHistory({
+          tableName: context.offering.offeringID,
+          partitionKey: "id",
+          sessionId: new Date().toISOString(), // Or some other unique identifier for the conversation
+          config: {
+            region: "us-east-1",
+            credentials: {
+              accessKeyId: "AKIAYFVQFYTJSU4SKO5R",
+              secretAccessKey: "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",
+            },
+          },
+        }),
+      });
+
+      const chat = new ChatOpenAI({ temperature: 0.9 });
+
+      const introductions = await introduction.getIntroduction(context.offering.domainType, context.offering.lang, context.offering.uxID);
+      const limitsGeneric = await limits.getLimits("realestate", "pt_br");
+      
+      const contentFromEmbeddings = [];
+      for await (const entity of context.offering.entities) {
+        const result = await embeddingVector.queryEmbeddings(context, entity, input);
+        contentFromEmbeddings.push(result[0].item.metadata.text);
+      }
+
+      const addOns = await addons.getAddons(context.offering.offeringID); 
+      const supportedTopics = await supported_topics.getSupportedTopics(context.offering.offeringID);
+
+      const systemContext = introductions + " " + supportedTopics + " " + limitsGeneric + " " + contentFromEmbeddings + " " + addOns;
+      const fullInput = systemContext + " " + input;
+
+      const chain = new ConversationChain({
+        llm: chat,
+        memory: memory
+      });
+  
+      const responseChat = await chain.call({
+        input: fullInput,
+      });
+
+      //TODO check if the response is valid, otherwise return an standard answer
+
+      console.log(responseChat);
+
+      //Send back the response
+      res.json({ result: responseChat.response });
+
+    }) //end of cors
+  }); //end of exports.v4

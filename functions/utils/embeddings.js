@@ -15,6 +15,7 @@ const api = new OpenAIApi(configuration);
 exports.getVector = async function(text) {
 
     console.log(`\x1b[32mRetrieving embeddings from OpenAI.\x1b[0m`);
+
     const response = await api.createEmbedding({
         'model': 'text-embedding-ada-002',
         'input': text,
