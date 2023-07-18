@@ -229,14 +229,14 @@ exports.chat2 = functions.https.onRequest(async (req, res) => {
           config: {
             region: "us-east-1",
             credentials: {
-              accessKeyId: "AKIAYFVQFYTJSU4SKO5R",
-              secretAccessKey: "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",
+              accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+              secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
             },
           },
         }),
       });
 
-      const chat = new ChatOpenAI({ temperature: 0.9 });
+      const chat = new ChatOpenAI({ modelName: 'gpt-4', temperature: 0.9 });
 
       const introductions = await introduction.getIntroduction(context.offering.domainType, context.offering.lang, context.offering.uxID);
       const limitsGeneric = await limits.getLimits("realestate", "pt_br");

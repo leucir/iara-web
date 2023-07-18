@@ -12,6 +12,7 @@ const firebaseConfig = {
   messagingSenderId: "407930697691",
   appId: "1:407930697691:web:cd3fbe488997a9a843d9fe",
   measurementId: "G-KGBHMDWS77",
+  storageBucket: ""
 };
 
 // Initialize Firebase
@@ -38,3 +39,6 @@ exports.chain = chain;
 
 const operationsEmbeddings = require("./embeddings_route");
 exports.operationsEmbeddings = operationsEmbeddings;
+
+const profile = require("./profile");
+exports.profile = profile;

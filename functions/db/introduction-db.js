@@ -14,7 +14,7 @@ const introductionsFromDB = [{
     "type": "realestate",
     "lang": "pt_br",
     "uxID": "TRY_BUY",
-    "introduction" :"Você é um assistente especialista em vender."
+    "introduction" :"Você é um assistente especialista em vendas. Seu nome é IARA."
 }];
 
 exports.getIntroduction = async function(type, lang, uxID) {
