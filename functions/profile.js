@@ -2,6 +2,8 @@ require("dotenv").config();
 const functions = require("firebase-functions");
 const cors = require('cors')({origin: true});
 
+
+//TODO: load from offerings DB service
 const offerings = [{
   clientUUID : "9823dfd-2323-2323-2323-2323232323",
   offering :
