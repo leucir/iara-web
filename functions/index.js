@@ -42,3 +42,6 @@ exports.operationsEmbeddings = operationsEmbeddings;
 
 const profile = require("./profile");
 exports.profile = profile;
+
+const offering = require("./offering");
+exports.offering = offering;

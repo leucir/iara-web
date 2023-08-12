@@ -2,8 +2,11 @@ require("dotenv").config();
 const functions = require("firebase-functions");
 const cors = require('cors')({origin: true});
 
+const invitesDB = require('./db/invitations-db');
+const offeringsDB = require('./db/offerings-db');
 
 //TODO: load from offerings DB service
+/*
 const offerings = [{
   clientUUID : "9823dfd-2323-2323-2323-2323232323",
   offering :
@@ -24,7 +27,10 @@ const offerings = [{
     }
   }
 }];
+*/
 
+
+/*
 
 const invites = [{
   invitationID : "123456",
@@ -41,8 +47,9 @@ const invites = [{
   expiresAt: "2015-01-01T00:00:00Z"
   }];
 
+  */
 
-//Add a product and its params
+
 exports.get = functions.https.onRequest(async (req, res) => {
   cors(req, res, async () => {
 
@@ -54,31 +61,31 @@ exports.get = functions.https.onRequest(async (req, res) => {
     }
 
     //retrieve the invitation from the DB
-    const invitation = invites.filter((entry) => entry.invitationID === invitationId);
+    const invitation = await invitesDB.getInvitation(invitationId);
 
-    if(invitation.length === 0){
+    //Check if invitation is undefined / not found
+    if(invitation === undefined){
       res.status(400).send('Invalid invitation');
       return;
     }
 
     //retrieve the offering details given the invitation
-    const offering = offerings.filter((entry) => entry.clientUUID === invitation[0].clientUUID);
+    const offering = await offeringsDB.getOffering(invitation.offeringID);
 
-    if(offering.length === 0){
+    //Check if offering is undefined / not found
+    if(offering === undefined){
       res.status(400).send('Cannot find an offering for this invitation');
       return;
     }
 
-    console.log(offering[0].offering.content.logo);
-
     //return the profile
     const profile = {
-      logo : offering[0].offering.content.logo,
-      title : offering[0].offering.content.title,
-      invitation : invitation[0].message,
-      invitee : invitation[0].invitee,
-      inviteeFirstName: invitation[0].inviteeFirstName,
-      inviteeLastName: invitation[0].inviteeLastName
+      logo : offering.content.logo,
+      title : offering.content.title,
+      welcomeMessage : invitation.message,
+      inviter : invitation.invitee,
+      inviteeFirstName: invitation.inviteeFirstName,
+      inviteeLastName: invitation.inviteeLastName
     }
 
     res.status(200).send(profile);

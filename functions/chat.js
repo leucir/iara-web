@@ -12,220 +12,47 @@ const {ConversationChain} = require("langchain/chains");
 const introduction = require("./db/introduction-db");
 const limits = require("./db/limits-db");
 const addons = require("./db/addons-db");
-const products = require("./db/products-db");
 const supported_topics = require("./db/supported-topics-db");
 const embeddingVector = require('./db/embedding-vector');
-
-const modelProviderOpenAI = require("./modelProviderOpenAI");
-const { getArgumentation } = require("./utils/argumentation");
-
-//Returns a parsed prompt, based on the product params
-exports.chat = functions.https.onRequest(async (req, res) => {
-  cors(req, res, async () => {
-    const max_tokens = 100;
-    let text = req.query.text;
-    let historyTalk = req.query.historyTalk;
-    console.log(getArgumentation(historyTalk))
-    text = `${getArgumentation(historyTalk, max_tokens)}, agora responda essa pergunta ou afirmação baseada no contexto acima: \"${text}\"`;
-    const response = await modelProviderOpenAI.textCompletionsDavinciSdk(text, {temperature: 0.1});
-    const nTokens = await modelProviderOpenAI.countTokens(text);
-
-    historyTalk = `${historyTalk || ''}\nuser: ${req.query.text} openai:${response.data.choices[0].text}`
-    res.json({ result: response.data.choices[0].text, nTokens, historyTalk });
-  })
-});
-
-/**
-* @deprecated
-*/
-exports.chat2 = functions.https.onRequest(async (req, res) => {
-  cors(req, res, async () => {
-
-    const context = {
-      clientUUID : "9823dfd-2323-2323-2323-2323232323",
-      offering: {
-        offeringID : "offering_noroeste",
-        domainType : "realestate",
-        entities: [
-          'products',
-          'contato',
-          'construtoras',
-          'products_extra'
-        ]
-      }
-    };
-
-    //retrieve input from the request
-    const input = req.body.input;
-
-    const fullPrompt = PromptTemplate.fromTemplate("" +
-    "{supported_topics} " +
-    "{limits_generic} " +
-    "{introduction} " + 
-    "{list_of_products} " +
-    "{addons} " +
-    "{limits_around_topics} " +
-    " ###" +
-    input
-    );
-
-    const introductionPrompt = PromptTemplate.fromTemplate('{introduction}');
-    const listOfProductsPrompt = PromptTemplate.fromTemplate('{list_of_products}');
-    const addonsPrompt = PromptTemplate.fromTemplate('{addons}');
-    const supportedTopicsPrompt = PromptTemplate.fromTemplate('{supported_topics}');
-    const limitsAroundTopicsPrompt = PromptTemplate.fromTemplate('{limits_around_topics}');
-    const limitsGenericPrompt = PromptTemplate.fromTemplate('{limits_generic}');
-
-    const composedPrompt = new PipelinePromptTemplate({
-      pipelinePrompts: [
-        {
-          name: "supported_topics",
-          prompt: supportedTopicsPrompt,
-        },
-        {
-          name: "introduction",
-          prompt: introductionPrompt,
-        },
-        {
-          name: "list_of_products",
-          prompt: listOfProductsPrompt,
-        },
-        {
-          name: "addons",
-          prompt: addonsPrompt,
-        },
-        {
-          name: "limits_around_topics",
-          prompt: limitsAroundTopicsPrompt,
-        },
-        {
-          name: "limits_generic",
-          prompt: limitsGenericPrompt,
-        },
-      ],  
-      finalPrompt: fullPrompt,
-    });
-
-    const limitsGeneric = await limits.getLimits("realestate", "pt_br");
-    const listOfProducts = await products.getProductsUsingEmbedding(context, input); //TODO NEED TO CHAGE THIS. ONE Offering each time
-    const addOns = await addons.getAddons("offering_noroeste");
-    const supportedTopics = await supported_topics.getSupportedTopics("offering_noroeste");
-
-    const formattedCorpus = await composedPrompt.format({
-      supported_topics: supportedTopics,
-      limits_generic: limitsGeneric,
-      introduction: "",
-      list_of_products: listOfProducts,
-      addons: addOns,
-      limits_around_topics: "",
-    });
-
-    console.log(formattedCorpus);
-
-    //Call LLM service
-    const response = await modelProviderOpenAI.textChatGPT35Sdk(formattedCorpus, {temperature: 0.1});
-
-    //Send back the response
-    res.json({ result: response.data.choices[0].text });
-    
-    }) //end of cors
-  }); //end of exports.chat2
+const offeringsDB = require("./db/offerings-db");
+const invitationsDB = require("./db/invitations-db");
 
 
-  exports.chat3 = functions.https.onRequest(async (req, res) => {
-    cors(req, res, async () => {
-
-      //retrieve input from the request
-      const input = req.query.text;
-
-      const context = {
-        clientUUID : "9823dfd-2323-2323-2323-2323232323",
-        offering :
-        {
-          offeringID : "offering_noroeste",
-          domainType : "realestate",
-          lang: "pt_br",
-          uxID: "TRY_BUY",
-          entities: [
-            'products',
-            'contato',
-            'construtoras',
-            'products_extra',
-          ]
-        }
-      };
-
-      const chat = new ChatOpenAI({ temperature: 0.3 });
-
-      const introductions = await introduction.getIntroduction(context.offering.domainType, context.offering.lang, context.offering.uxID);
-      const limitsGeneric = await limits.getLimits("realestate", "pt_br");
-      
-      const contentFromEmbeddings = [];
-      for await (const entity of context.offering.entities) {
-        const result = await embeddingVector.queryEmbeddings(context, entity, input);
-        contentFromEmbeddings.push(result[0].item.metadata.text);
-      }
-
-      const addOns = await addons.getAddons(context.offering.offeringID); 
-      const supportedTopics = await supported_topics.getSupportedTopics(context.offering.offeringID);
-
-      const mainPrompt = ChatPromptTemplate.fromPromptMessages([
-        SystemMessagePromptTemplate.fromTemplate(
-          "{introduction} {supported_topics} {limits_generic} {list_of_products} {addons} {limits_around_topics}"
-        ),
-        HumanMessagePromptTemplate.fromTemplate("{text}"),
-      ]);
-
-      const responseA = await chat.generatePrompt([
-        await mainPrompt.formatPromptValue({
-          introduction: introductions,
-          supported_topics: supportedTopics,
-          limits_generic: limitsGeneric,
-          list_of_products: contentFromEmbeddings,
-          addons: addOns,
-          limits_around_topics: "",
-          text: input
-        }),
-      ]);
-
-
-      //TODO check if the response is valid, otherwise return an standard answer
-
-      //Send back the response
-      res.json({ result: responseA });
-
-    }) //end of cors
-  }); //end of exports.chat3
-
-
+  /**
+   * @current
+   */
   exports.v4 = functions.https.onRequest(async (req, res) => {
     cors(req, res, async () => {
 
       //retrieve input from the request
       const input = req.query.input;
+      const invitationID = req.query.inv;
+      const offeringID = req.query.offering;
 
-      const context = {
-        clientUUID : "9823dfd-2323-2323-2323-2323232323",
-        offering :
-        {
-          offeringID : "offering_noroeste",
-          domainType : "realestate",
-          lang: "pt_br",
-          uxID: "TRY_BUY",
-          entities: [
-            'products',
-            'contato',
-            'construtoras',
-            'products_extra',
-          ]
-        }
-      };
+      //Build the context given the invitationID and the offeringID
+      const invitation = await invitationsDB.getInvitation(invitationID);
+
+      var offering = {};
+      if(invitation){
+        console.log("Chat::Retrieving offering from invitation");
+        offering = await offeringsDB.getOffering(invitation.offeringID);
+      }else{
+        console.log("Chat::Retrieving offering from offeringID");
+        offering = await offeringsDB.getOffering(offeringID);
+      }
+
+      //log the timestamp
+      console.log("Timestamp <Before Buffer Memory>: " + new Date().toISOString());
+
+      //get the current daty of the year
+      const currentDayOfYear = new Date().getDate();
+      console.log("Current Day of Year: " + currentDayOfYear);
 
       const memory = new BufferMemory({
         chatHistory: new DynamoDBChatMessageHistory({
-          tableName: context.offering.offeringID,
+          tableName: offering.offeringID,
           partitionKey: "id",
-          sessionId: new Date().toISOString(), // Or some other unique identifier for the conversation
+          sessionId: invitationID + currentDayOfYear, // Or some other unique identifier for the conversation
           config: {
             region: "us-east-1",
             credentials: {
@@ -235,20 +62,28 @@ exports.chat2 = functions.https.onRequest(async (req, res) => {
           },
         }),
       });
+      console.log("Timestamp <After Buffer Memory>: " + new Date().toISOString());
 
-      const chat = new ChatOpenAI({ modelName: 'gpt-4', temperature: 0.9 });
+      const chat = new ChatOpenAI({ modelName: 'gpt-3.5-turbo', temperature: 0.5, maxTokens: 250});
 
-      const introductions = await introduction.getIntroduction(context.offering.domainType, context.offering.lang, context.offering.uxID);
+      console.log("Timestamp <Before get Introduction>: " + new Date().toISOString());
+      const introductions = await introduction.getIntroduction(offering.domainType, offering.lang, offering.uxID);
+      console.log("Timestamp <After get Introduction>: " + new Date().toISOString());
+
+      console.log("Timestamp <Before get Limits>: " + new Date().toISOString());
       const limitsGeneric = await limits.getLimits("realestate", "pt_br");
+      console.log("Timestamp <After get Limits>: " + new Date().toISOString());
       
+      console.log("Timestamp <Before get Embeddings>: " + new Date().toISOString());
       const contentFromEmbeddings = [];
-      for await (const entity of context.offering.entities) {
-        const result = await embeddingVector.queryEmbeddings(context, entity, input);
+      for await (const entity of offering.entities) {
+        const result = await embeddingVector.queryEmbeddings(offering.offeringID, offering.domainType, entity, input);
         contentFromEmbeddings.push(result[0].item.metadata.text);
       }
+      console.log("Timestamp <After get Embeddings>: " + new Date().toISOString());
 
-      const addOns = await addons.getAddons(context.offering.offeringID); 
-      const supportedTopics = await supported_topics.getSupportedTopics(context.offering.offeringID);
+      const addOns = await addons.getAddons(offering.offeringID); 
+      const supportedTopics = await supported_topics.getSupportedTopics(offering.offeringID);
 
       const systemContext = introductions + " " + supportedTopics + " " + limitsGeneric + " " + contentFromEmbeddings + " " + addOns;
       const fullInput = systemContext + " " + input;
@@ -258,16 +93,22 @@ exports.chat2 = functions.https.onRequest(async (req, res) => {
         memory: memory
       });
   
-      const responseChat = await chain.call({
-        input: fullInput,
-      });
+      console.log("Timestamp <Before call Chain>: " + new Date().toISOString());
 
-      //TODO check if the response is valid, otherwise return an standard answer
-
-      console.log(responseChat);
-
-      //Send back the response
-      res.json({ result: responseChat.response });
+      try {
+        const responseChat = await chain.call({
+          input: fullInput,
+        });
+        console.log("Timestamp <After call Chain>: " + new Date().toISOString());
+  
+        //TODO check if the response is valid, otherwise return an standard answer
+  
+        //Send back the response
+        res.json({ result: responseChat.response });          
+      } catch (error) {
+        console.log(error);
+        res.end();
+      }
 
     }) //end of cors
   }); //end of exports.v4
