@@ -2,7 +2,7 @@ require("dotenv").config();
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const cors = require('cors')({origin: true});
-const {PromptTemplate, PipelinePromptTemplate, SystemMessagePromptTemplate, HumanMessagePromptTemplate, ChatPromptTemplate} = require("langchain/prompts");
+const {SystemMessagePromptTemplate, HumanMessagePromptTemplate, ChatPromptTemplate} = require("langchain/prompts");
 const {ChatOpenAI} = require("langchain/chat_models/openai");
 const {HumanChatMessage, AIChatMessage, SystemChatMessage} = require("langchain/schema");
 const {BufferMemory} = require("langchain/memory");
@@ -29,8 +29,11 @@ const invitationsDB = require("./db/invitations-db");
       const invitationID = req.query.inv;
       const offeringID = req.query.offering;
 
-      //Build the context given the invitationID and the offeringID
-      const invitation = await invitationsDB.getInvitation(invitationID);
+      var invitation = undefined;
+      if(invitationID){
+        //Build the context given the invitationID and the offeringID
+        invitation = await invitationsDB.getInvitation(invitationID);
+      }
 
       var offering = {};
       if(invitation){
@@ -39,6 +42,11 @@ const invitationsDB = require("./db/invitations-db");
       }else{
         console.log("Chat::Retrieving offering from offeringID");
         offering = await offeringsDB.getOffering(offeringID);
+      }
+
+      if(!offering){
+        console.log("Chat::Offering not found");
+        res.json({ result: "Offering not found" });
       }
 
       //log the timestamp
@@ -52,7 +60,7 @@ const invitationsDB = require("./db/invitations-db");
         chatHistory: new DynamoDBChatMessageHistory({
           tableName: offering.offeringID,
           partitionKey: "id",
-          sessionId: invitationID + currentDayOfYear, // Or some other unique identifier for the conversation
+          sessionId: "12345" + currentDayOfYear, // Or some other unique identifier for the conversation
           config: {
             region: "us-east-1",
             credentials: {
@@ -62,6 +70,9 @@ const invitationsDB = require("./db/invitations-db");
           },
         }),
       });
+
+    console.log(memory);
+
       console.log("Timestamp <After Buffer Memory>: " + new Date().toISOString());
 
       const chat = new ChatOpenAI({ modelName: 'gpt-3.5-turbo', temperature: 0.5, maxTokens: 250});
@@ -85,10 +96,16 @@ const invitationsDB = require("./db/invitations-db");
       const addOns = await addons.getAddons(offering.offeringID); 
       const supportedTopics = await supported_topics.getSupportedTopics(offering.offeringID);
 
-      const systemContext = introductions + " " + supportedTopics + " " + limitsGeneric + " " + contentFromEmbeddings + " " + addOns;
+      const systemContext = introductions + " " + supportedTopics + " " + limitsGeneric + " " + contentFromEmbeddings + " " + addOns + "{_placehoder_}";
       const fullInput = systemContext + " " + input;
 
+      const chatPrompt = ChatPromptTemplate.fromPromptMessages([
+        SystemMessagePromptTemplate.fromTemplate(systemContext),
+        HumanMessagePromptTemplate.fromTemplate(input),
+      ]);
+
       const chain = new ConversationChain({
+        prompt: chatPrompt,
         llm: chat,
         memory: memory
       });
@@ -97,7 +114,7 @@ const invitationsDB = require("./db/invitations-db");
 
       try {
         const responseChat = await chain.call({
-          input: fullInput,
+          _placehoder_ : ""
         });
         console.log("Timestamp <After call Chain>: " + new Date().toISOString());
   
