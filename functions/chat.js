@@ -28,6 +28,12 @@ const invitationsDB = require("./db/invitations-db");
       const input = req.query.input;
       const invitationID = req.query.inv;
       const offeringID = req.query.offeringID;
+      const sessionID = req.query.sessionID;
+
+      if(sessionID === undefined){
+        res.status(400).send('Missing sessionID. Call /profile first');
+        res.end();
+      }
 
       var invitation = undefined;
       if(invitationID){
@@ -60,7 +66,7 @@ const invitationsDB = require("./db/invitations-db");
         chatHistory: new DynamoDBChatMessageHistory({
           tableName: offering.offeringID,
           partitionKey: "id",
-          sessionId: "12345" + currentDayOfYear, // Or some other unique identifier for the conversation
+          sessionId: sessionID, // Or some other unique identifier for the conversation
           config: {
             region: "us-east-1",
             credentials: {

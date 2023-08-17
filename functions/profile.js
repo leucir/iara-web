@@ -1,54 +1,10 @@
 require("dotenv").config();
+const uuid = require('uuid');
 const functions = require("firebase-functions");
 const cors = require('cors')({origin: true});
 
 const invitesDB = require('./db/invitations-db');
 const offeringsDB = require('./db/offerings-db');
-
-//TODO: load from offerings DB service
-/*
-const offerings = [{
-  clientUUID : "9823dfd-2323-2323-2323-2323232323",
-  offering :
-  {
-    offeringID : "offering_noroeste",
-    domainType : "realestate",
-    lang: "pt_br",
-    uxID: "TRY_BUY",
-    entities: [
-      'products',
-      'contato',
-      'construtoras',
-      'products_extra',
-    ],
-    content: {
-      logo : 'images/logo.png',
-      title : 'some_title',
-    }
-  }
-}];
-*/
-
-
-/*
-
-const invites = [{
-  invitationID : "123456",
-  clientUUID : "9823dfd-2323-2323-2323-2323232323",
-  invitee: "leucir@gmail.com",
-  inviteePhone : "+15128176956",
-  inviteeFirstName: "John",
-  inviteeLastName: "Noarms",
-  status: "pending",
-  updated: "2015-01-01T00:00:00Z",
-  message: "Hello, would you like to be my friend?",
-  type: "realstate",
-  createdAt: "2015-01-01T00:00:00Z",
-  expiresAt: "2015-01-01T00:00:00Z"
-  }];
-
-  */
-
 
 exports.get = functions.https.onRequest(async (req, res) => {
   cors(req, res, async () => {
@@ -91,5 +47,23 @@ exports.get = functions.https.onRequest(async (req, res) => {
     res.status(200).send(profile);
 
     res.end();
-  })
+  });
+});
+
+
+exports.session = functions.https.onRequest(async (req, res) => {
+  cors(req, res, async () => {
+
+        //Create an unique session ID
+        const sessionID = uuid.v4();
+
+        //return the session info
+        const sessionInfo = {
+          sessionID: sessionID
+        }
+
+        res.status(200).send(sessionInfo);
+
+        res.end();
+  });
 });
