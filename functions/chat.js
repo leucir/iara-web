@@ -31,7 +31,7 @@ const invitationsDB = require("./db/invitations-db");
       const sessionID = req.query.sessionID;
 
       if(sessionID === undefined){
-        res.status(400).send('Missing sessionID. Call /profile first');
+        res.status(400).send('Missing sessionID. Call /profile-session first');
         res.end();
       }
 
