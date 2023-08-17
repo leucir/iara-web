@@ -27,7 +27,7 @@ const invitationsDB = require("./db/invitations-db");
       //retrieve input from the request
       const input = req.query.input;
       const invitationID = req.query.inv;
-      const offeringID = req.query.offering;
+      const offeringID = req.query.offeringID;
 
       var invitation = undefined;
       if(invitationID){

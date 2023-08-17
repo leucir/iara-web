@@ -16,74 +16,23 @@ exports.addProduct = functions.https.onRequest(async (req, res) => {
   res.json({ result: `Message with ID: ${writeResult.id} added.` });
 });
 
-
-//TODO: load from offerings DB service
-const offerings = [{
-  clientUUID : "9823dfd-2323-2323-2323-2323232323",
-  offering :
-  {
-    offeringID : "offering_noroeste",
-    domainType : "realestate",
-    lang: "pt_br",
-    uxID: "TRY_BUY",
-    entities: [
-      'products',
-      'contato',
-      'construtoras',
-      'products_extra',
-    ],
-    content: {
-      logo : 'images/logo.png',
-      title : 'some_title',
-    }
-  }
-}];
-
-const invites = [{
-  invitationID : "123456",
-  clientUUID : "9823dfd-2323-2323-2323-2323232323",
-  invitee: "leucir@gmail.com",
-  inviteePhone : "+15128176956",
-  inviteeFirstName: "John",
-  inviteeLastName: "Noarms",
-  status: "pending",
-  updated: "2015-01-01T00:00:00Z",
-  message: "Hello, would you like to be my friend?",
-  type: "realstate",
-  createdAt: "2015-01-01T00:00:00Z",
-  expiresAt: "2015-01-01T00:00:00Z"
-  }];
-
-
 exports.getPopupItems = functions.https.onRequest(async (req, res) => {
   cors(req, res, async () => {
 
-    const invitationId = req.query.inv;
-    const resultSize = req.query.size;
+    const offeringID = req.query.offeringID;
+    const resultSize = req.query.popUpsize;
 
-    if(!invitationId){
-      res.status(400).send('Missing invitation Id');
-      return;
+    if(!offeringID){
+      res.status(400).send('Missing offering Id');
+      res.end();
     }
 
-    //retrieve the invitation from the DB
-    const invitation = invites.filter((entry) => entry.invitationID === invitationId);
+    const popupItems = await popupQuestionsDB.getPopupItems(offeringID, resultSize);
 
-    if(invitation.length === 0){
-      res.status(400).send('Invalid invitation');
-      return;
+    if(!popupItems){
+      res.status(400).send('Popup items not found');
+      res.end();
     }
-
-    //retrieve the offering details given the invitation
-    const offering = offerings.filter((entry) => entry.clientUUID === invitation[0].clientUUID);
-
-    if(offering.length === 0){
-      res.status(400).send('Cannot find an offering for this invitation');
-      return;
-    }
-
-    //retrieve the invitation from the DB
-    const popupItems = await popupQuestionsDB.getPopupItems(offering[0].offering.offeringID, resultSize);
 
     res.json(popupItems);
   });
