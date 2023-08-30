@@ -48,8 +48,8 @@ exports.addInvitation = functions.https.onRequest(async (req, res) => {
         //Persist mail in the mail collections
         const mailResult = mailDB.sendMail(
             invitation.invitee,
-            'Welcome to the Noroeste Digital',
-            'This is an <code>HTML</code> email body.'
+            'Bem-vindo ao More no Noroeste.',
+            'Bem-vindo ao More no Noroeste. https://morenonoroeste.com.br/chat?inv='+invitationID
         );
 
         // Send back a message that we've successfully written the message

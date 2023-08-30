@@ -16,6 +16,9 @@ const supported_topics = require("./db/supported-topics-db");
 const embeddingVector = require('./db/embedding-vector');
 const offeringsDB = require("./db/offerings-db");
 const invitationsDB = require("./db/invitations-db");
+const memoryDB = require("./db/memory-db");
+
+const logs = require("./utils/logs");
 
 
   /**
@@ -33,6 +36,14 @@ const invitationsDB = require("./db/invitations-db");
       if(sessionID === undefined){
         res.status(400).send('Missing sessionID. Call /profile-session first');
         res.end();
+        return;
+      }
+
+      if(!offeringID){
+        console.log("Chat::Offering not found");
+        res.status(400).send("Offering not found");
+        res.end();
+        return;
       }
 
       var invitation = undefined;
@@ -41,27 +52,14 @@ const invitationsDB = require("./db/invitations-db");
         invitation = await invitationsDB.getInvitation(invitationID);
       }
 
-      var offering = {};
-      if(invitation){
-        console.log("Chat::Retrieving offering from invitation");
-        offering = await offeringsDB.getOffering(invitation.offeringID);
-      }else{
-        console.log("Chat::Retrieving offering from offeringID");
-        offering = await offeringsDB.getOffering(offeringID);
-      }
+      var offering = undefined;
+      console.log("Chat::Retrieving offering from offeringID");
+      offering = await offeringsDB.getOffering(offeringID);
 
-      if(!offering){
-        console.log("Chat::Offering not found");
-        res.json({ result: "Offering not found" });
-      }
+      logs.recordPass('chat','v4','Before Buffer Memory');
 
-      //log the timestamp
-      console.log("Timestamp <Before Buffer Memory>: " + new Date().toISOString());
-
-      //get the current daty of the year
-      const currentDayOfYear = new Date().getDate();
-      console.log("Current Day of Year: " + currentDayOfYear);
-
+      //Memorize the Chat (not the user) for future calls
+      /*
       const memory = new BufferMemory({
         chatHistory: new DynamoDBChatMessageHistory({
           tableName: offering.offeringID,
@@ -76,33 +74,53 @@ const invitationsDB = require("./db/invitations-db");
           },
         }),
       });
+      */
+      logs.recordPass('chat','v4','After Buffer Memory');
 
-    console.log(memory);
-
-      console.log("Timestamp <After Buffer Memory>: " + new Date().toISOString());
-
-      const chat = new ChatOpenAI({ modelName: 'gpt-3.5-turbo', temperature: 0.5, maxTokens: 250});
-
-      console.log("Timestamp <Before get Introduction>: " + new Date().toISOString());
+      logs.recordPass('chat','v4','Before Get Introduction');
       const introductions = await introduction.getIntroduction(offering.domainType, offering.lang, offering.uxID);
-      console.log("Timestamp <After get Introduction>: " + new Date().toISOString());
+      logs.recordPass('chat','v4','After Get Introduction');
 
-      console.log("Timestamp <Before get Limits>: " + new Date().toISOString());
+      logs.recordPass('chat','v4','Before Get Limits');
       const limitsGeneric = await limits.getLimits("realestate", "pt_br");
-      console.log("Timestamp <After get Limits>: " + new Date().toISOString());
+      logs.recordPass('chat','v4','After Get Limits');
       
-      console.log("Timestamp <Before get Embeddings>: " + new Date().toISOString());
+      logs.recordPass('chat','v4','Before Get Embeddings');
       const contentFromEmbeddings = [];
       for await (const entity of offering.entities) {
-        const result = await embeddingVector.queryEmbeddings(offering.offeringID, offering.domainType, entity, input);
-        contentFromEmbeddings.push(result[0].item.metadata.text);
+        const fullResult = await embeddingVector.queryEmbeddings(offering.offeringID, offering.domainType, entity, input);
+        //iterate over result and select only the occurrences that are above the threshold defined in entry.score
+        const result = fullResult.filter((entry) => entry.score > process.env.EMBEDDING_THRESHOLD);
+        //iterate over result and push the text to the contentFromEmbeddings array
+        finalResult = result.map((entry) => contentFromEmbeddings.push(entry.item.metadata.text));
       }
-      console.log("Timestamp <After get Embeddings>: " + new Date().toISOString());
+      logs.recordPass('chat','v4','After Get Embeddings');
 
+      logs.recordPass('chat','v4','Before Get AddOns');
       const addOns = await addons.getAddons(offering.offeringID); 
-      const supportedTopics = await supported_topics.getSupportedTopics(offering.offeringID);
+      logs.recordPass('chat','v4','After Get AddOns');
 
-      const systemContext = introductions + " " + supportedTopics + " " + limitsGeneric + " " + contentFromEmbeddings + " " + addOns + "{_placehoder_}";
+      logs.recordPass('chat','v4','Before Get Supported Topics');
+      const supportedTopics = await supported_topics.getSupportedTopics(offering.offeringID);
+      logs.recordPass('chat','v4','After Get Supported Topics');
+
+      logs.recordPass('chat','v4','Before Get Memories');
+      const memories = await memoryDB.loadLastNMemories(sessionID, process.env.MEMORY_SIZE);
+      logs.recordPass('chat','v4','After Get Memories');
+
+      const systemContext = introductions
+      + " " 
+      + supportedTopics 
+      + " " 
+      + limitsGeneric 
+      + " " 
+      + "_embeddings_BEGIN_ " + contentFromEmbeddings + " _embeddings_END_"
+      + " " 
+      + addOns 
+      + " "
+      + "Assistente Virtual, use _memories_ para lembrar o que conversamos. Use _embeddings_ para enriquecer o conteudo."
+      + "_memories_BEGIN " + memories + " _memories_END"
+      + "{_placehoder_}";
       const fullInput = systemContext + " " + input;
 
       const chatPrompt = ChatPromptTemplate.fromPromptMessages([
@@ -110,19 +128,35 @@ const invitationsDB = require("./db/invitations-db");
         HumanMessagePromptTemplate.fromTemplate(input),
       ]);
 
+      const chat = new ChatOpenAI({ modelName: 'gpt-3.5-turbo', temperature: 0.7, maxTokens: 500});
+
       const chain = new ConversationChain({
         prompt: chatPrompt,
-        llm: chat,
-        memory: memory
+        llm: chat
       });
   
-      console.log("Timestamp <Before call Chain>: " + new Date().toISOString());
-
+      logs.recordPass('chat','v4','Before Call Chain');
       try {
+        //store the input in the memoryDB
+        await memoryDB.putMemory(sessionID, {
+          flowType: 1,
+          offeringID: offering.offeringID,
+          message: input
+        });
+
+        //This _placeholder_ variable is to enable the ChatPromptTemplate that requires at least one parameter
         const responseChat = await chain.call({
           _placehoder_ : ""
         });
-        console.log("Timestamp <After call Chain>: " + new Date().toISOString());
+
+        //store the input in the memoryDB
+        await memoryDB.putMemory(sessionID, {
+          flowType: 0,
+          offeringID: offering.offeringID,
+          message: responseChat.response
+        });
+
+        logs.recordPass('chat','v4','After Call Chain');
   
         //TODO check if the response is valid, otherwise return an standard answer
   

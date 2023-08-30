@@ -1,6 +1,6 @@
 const offeringTopics = [{
     "offeringId": "offering_noroeste",
-    "topics" :"[empreendimento imobiliarios, apartamentos, noroeste de Brasilia, farmacias, escolas, bancos, financiamento]"
+    "topics" :"[empreendimento imobiliarios, apartamentos, noroeste de Brasilia, farmacias, escolas, bancos, financiamento, imoveis, imobiliaria, compra, venda]"
 }];
 
 exports.getSupportedTopics = async function(offeringId) {

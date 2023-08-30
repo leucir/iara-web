@@ -45,3 +45,6 @@ exports.profile = profile;
 
 const offering = require("./offering");
 exports.offering = offering;
+
+const memory = require("./memory");
+exports.memory = memory;
