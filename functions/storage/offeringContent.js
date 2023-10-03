@@ -1,11 +1,19 @@
 const getApp = require("firebase/app");
 const {getStorage, ref} = require("firebase/storage"); 
 
-const app = getApp();
-const storage = getStorage(app);
-
-
-exports.pushImage = async function (image, path) {
-    
+exports.getMediaURLsFromUniqueIds = async function (uniqueIds) {
+    urls = [];
+    if(uniqueIds.length > 0){
+        response = {
+          response: responseChat.response,
+          urls: uniqueIds.map((entry) => {
+            return {
+              url: "https://www.vivareal.com.br/" + entry,
+              uniqueId: entry
+            }
+          })
+        }
+      }
+    return urls; 
     
 }

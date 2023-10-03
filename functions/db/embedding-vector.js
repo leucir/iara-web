@@ -48,7 +48,7 @@ const queryEmbeddings = async (offeringID, domainType, pEntityName, pQuery, numR
 };
 
 //Create an async function to write embeddings to the vectra index
-const writeEmbeddings = async (text, indexName) => {
+const writeEmbeddings = async (text, indexName, uniqueId) => {
 
     // Create local index
     const index = new LocalIndex(path.join(__dirname,'..', EMBEDDING_INDEX_FOLDER, indexName));
@@ -63,7 +63,7 @@ const writeEmbeddings = async (text, indexName) => {
     // Add the text to the index
     await index.insertItem({
         vector,
-        metadata: { text }
+        metadata: { uniqueId, text }
     });
 
 };
@@ -82,9 +82,21 @@ const createEmbeddings = async (fullPath, indexNamePrefix) => {
 
         //write a code that will split the text into sentences using the EMBEDDING_SEPARATOR, and write each sentence to the vectra index
         const sentences = text.split(EMBEDDING_SEPARATOR);
-
+        
         for (const sentence of sentences) {
-            await writeEmbeddings(sentence, indexName);
+
+            //extract the PR_* (prod ID) from the sentence, delimited by [[ and ]], and use it as the uniqueId. Keep the rest of the sentence as the text
+            var uniqueId = sentence.substring(sentence.indexOf('[[') + 2, sentence.indexOf(']]'));
+            const transformedSentence = sentence.substring(sentence.indexOf(']]') + 2);
+
+            //if the sentence doesn't have a PROD_ID, then use the whole sentence as the uniqueId
+            if (!uniqueId.startsWith('PR_')) {
+                uniqueId = "NOT_FOUND";
+            }else{
+                console.log("PROD_ID loaded: " + uniqueId);
+                console.log("Sentence loaded: " + transformedSentence);
+            }
+            await writeEmbeddings(transformedSentence, indexName, uniqueId);
         }
 
         const tokens = await countTokens(text);

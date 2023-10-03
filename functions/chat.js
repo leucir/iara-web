@@ -17,6 +17,7 @@ const embeddingVector = require('./db/embedding-vector');
 const offeringsDB = require("./db/offerings-db");
 const invitationsDB = require("./db/invitations-db");
 const memoryDB = require("./db/memory-db");
+const offeringContent = require("./storage/offeringContent");
 
 const logs = require("./utils/logs");
 
@@ -87,12 +88,20 @@ const logs = require("./utils/logs");
       
       logs.recordPass('chat','v4','Before Get Embeddings');
       const contentFromEmbeddings = [];
+      const uniqueIdsFromEmbeddings = [];
       for await (const entity of offering.entities) {
         const fullResult = await embeddingVector.queryEmbeddings(offering.offeringID, offering.domainType, entity, input);
         //iterate over result and select only the occurrences that are above the threshold defined in entry.score
         const result = fullResult.filter((entry) => entry.score > process.env.EMBEDDING_THRESHOLD);
         //iterate over result and push the text to the contentFromEmbeddings array
-        finalResult = result.map((entry) => contentFromEmbeddings.push(entry.item.metadata.text));
+        finalResult = result.map((entry) => {
+          contentFromEmbeddings.push(entry.item.metadata.text);
+
+          //push new uniqueId to the array if uniqueId is different of "NOT_FOUND"
+          if(entry.item.metadata.uniqueId != "NOT_FOUND"){
+            uniqueIdsFromEmbeddings.push(entry.item.metadata.uniqueId);
+          }
+        })
       }
       logs.recordPass('chat','v4','After Get Embeddings');
 
@@ -128,11 +137,30 @@ const logs = require("./utils/logs");
         HumanMessagePromptTemplate.fromTemplate(input),
       ]);
 
-      const chat = new ChatOpenAI({ modelName: 'gpt-3.5-turbo', temperature: 0.7, maxTokens: 500});
+      const chat = new ChatOpenAI({ modelName: 'gpt-3.5-turbo-0613', temperature: 0.7, maxTokens: 500, functions:
+      [
+        {
+          name: "getProductMedia",
+          description: "O usuario quer comprar o imovel",
+          parameters: {
+            type: "object",
+            properties: {
+              productName: {
+                type: "string",
+                description: "o nome do imovel",
+              },
+            },
+            required: ["productName"],
+          }
+        }
+      ],
+      function_call: 'auto'
+      });
 
       const chain = new ConversationChain({
         prompt: chatPrompt,
-        llm: chat
+        llm: chat,
+        return_final_only: false
       });
   
       logs.recordPass('chat','v4','Before Call Chain');
@@ -157,11 +185,23 @@ const logs = require("./utils/logs");
         });
 
         logs.recordPass('chat','v4','After Call Chain');
+
+        console.log("Chat::Response from OpenAI::"+JSON.stringify(responseChat));
   
         //TODO check if the response is valid, otherwise return an standard answer
-  
+
+        //Check if the response has a function call
+        //console.log("function called::"+responseChat.data.choices[0].finish_reason);    
+        
+        //Use the results from the uniqueIdsFromEmbeddings to build a list of URLs and them an JSON object
+        var urls = await offeringContent.getMediaURLsFromUniqueIds(uniqueIdsFromEmbeddings);
+
         //Send back the response
-        res.json({ result: responseChat.response });          
+        res.json({ 
+          result: responseChat.response,
+          urls: urls 
+        });
+
       } catch (error) {
         console.log(error);
         res.end();

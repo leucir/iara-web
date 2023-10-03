@@ -78,10 +78,10 @@ formatMemoriesAsChat = (memories) => {
     memories.forEach(memory => {
         if (memory.flowType == 1) {
             //user
-            chat.push("USER:" + memory.message);
+            chat.push("User:" + memory.message);
         }else{
             //ai
-            chat.push("IARA:" + memory.message);
+            chat.push("Assistant:" + memory.message);
         }
     });
 
