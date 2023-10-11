@@ -177,12 +177,14 @@ const logs = require("./utils/logs");
           _placehoder_ : ""
         });
 
+        logs.recordPass('chat','v4','Before put Memory');
         //store the input in the memoryDB
         await memoryDB.putMemory(sessionID, {
           flowType: 0,
           offeringID: offering.offeringID,
           message: responseChat.response
         });
+        logs.recordPass('chat','v4','After put Memory');
 
         logs.recordPass('chat','v4','After Call Chain');
 

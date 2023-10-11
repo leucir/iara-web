@@ -2,6 +2,7 @@ const uuid = require('uuid');
 const admin = require('firebase-admin');
 const db = admin.firestore();
 const memoryDb = db.collection('short_memory');
+const sessionDb = db.collection('uniqueSessions');
 
 class Memory {
 
@@ -17,21 +18,28 @@ class Memory {
         this.flowType = flowType;
         this.offeringID = offeringID;
         this.message = message;
-        this.timestamp = new Date();
+        this.timestamp = Date.now();
     }
 }
 
 exports.putMemory= async (sessionID, params) => {
 
     const docID = uuid.v4();
+    const timestamp = Date.now();
 
+    //Store the memory in the database
+    //timestamp is the current time in Epoch format
     const writeResult = await memoryDb.doc(docID).set({
         sessionID: sessionID,
         flowType: params.flowType,
         offeringID: params.offeringID,
         message: params.message,
-        timestamp: new Date()
+        timestamp: timestamp
     });
+
+    //update the session
+    upsertUniqueSessionsAggr(sessionID, timestamp, {});
+
     return writeResult;
 }
 
@@ -88,4 +96,21 @@ formatMemoriesAsChat = (memories) => {
     return chat;
 }
 
+
+
+//function that will upsert a document in the uniqueSessions collection
+//This operation will record the last interaction with a sessionID
+//If it is necessary to check when the session started, check the memory collection
+//The data stored by this function is used to retrieve the aggregated data for the analytics
+upsertUniqueSessionsAggr = async (sessionID, timestamp, extraInfo = {}) => {
+
+    const writeResult = await sessionDb.doc(sessionID).set({
+        sessionID: sessionID,
+        timestamp: timestamp,
+        extraInfo: extraInfo
+    });
+    
+    return writeResult;
+
+}
 

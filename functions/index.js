@@ -48,3 +48,6 @@ exports.offering = offering;
 
 const memory = require("./memory");
 exports.memory = memory;
+
+const analytics = require("./analytics");
+exports.analytics = analytics;
