@@ -4,20 +4,10 @@ const embeddingVector = require('./db/embedding-vector');
 
 exports.refreshEmbeddings = functions.https.onRequest(async (req, res) => {
 
-    const context = {
-        clientUUID : "9823dfd-2323-2323-2323-2323232323",
-        offeringID : "offering_noroeste",
-        domainType : "realestate",
-        entities: [
-            'products',
-            'contato',
-            'construtoras',
-            'products_extra'
-        ]
-    };
+    const context = req.body;
 
-    await embeddingVector.refreshEmbeddings(context);
+    await embeddingVector.refreshEmbeddings(context.offeringID, context.domainType);
 
     // Send back a message that we've successfully written the message
-    res.json({writeResult: "ok"});
+    res.json({writeResult: "Embeddings refreshed successfully!"});
 });

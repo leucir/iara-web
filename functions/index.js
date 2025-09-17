@@ -2,16 +2,17 @@ require("dotenv").config();
 
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
+
 const cors = require('cors')({origin: true});
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDnVsjjZUfaIc5R8E_vakT9mdWzU33GKtc",
-  authDomain: "prop-tech-iara.firebaseapp.com",
-  projectId: "prop-tech-iara",
-  storageBucket: "prop-tech-iara.appspot.com",
-  messagingSenderId: "407930697691",
-  appId: "1:407930697691:web:cd3fbe488997a9a843d9fe",
-  measurementId: "G-KGBHMDWS77",
+  apiKey: "AIzaSyCAZ2dB7TVLI86oQJimFsX5dX_Qh-MpQy4",
+  authDomain: "iara-api-15d42.firebaseapp.com",
+  projectId: "iara-api-15d42",
+  storageBucket: "iara-api-15d42.appspot.com",
+  messagingSenderId: "900519176588",
+  appId: "1:900519176588:web:65240962ad1bf888720ea9",
+  measurementId: "G-QNT2K6BJCN"
 };
 
 // Initialize Firebase
@@ -38,3 +39,15 @@ exports.chain = chain;
 
 const operationsEmbeddings = require("./embeddings_route");
 exports.operationsEmbeddings = operationsEmbeddings;
+
+const profile = require("./profile");
+exports.profile = profile;
+
+const offering = require("./offering");
+exports.offering = offering;
+
+const memory = require("./memory");
+exports.memory = memory;
+
+const analytics = require("./analytics");
+exports.analytics = analytics;

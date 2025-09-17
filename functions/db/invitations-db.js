@@ -14,14 +14,8 @@ const getInvitations = async () => {
     };  
 
 const getInvitation = async (id) => {
-
-console.log(id);
-
     const invitationDoc = invitationDB.doc(id);
     const snapshot = await invitationDoc.get();
-
-console.log(snapshot.data());
-
     return snapshot.data();
 }
 

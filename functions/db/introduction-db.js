@@ -1,7 +1,7 @@
 const uxFromDB = [{
     "lang": "pt_br",
     "uxID": "TRY_BUY",
-    "uxPrompt": "Integre de forma fluida a essência de \"Descubra, Experimente e Compre\" nas interações do seu assistente de IA. Incentive os clientes a explorar opções diversas, encoraje-os a experimentar novas experiências e forneça recomendações personalizadas que capacitem uma tomada de decisão informada. Permita que o assistente de IA encarne a jornada de descoberta, experimentação e realização ao longo da conversa."
+    "uxPrompt": "IARA, integre de forma fluida a essência de \"Descubra, Experimente e Compre\" nas conversas. Incentive os usuarios a explorar opções diversas, encoraje-os a experimentar novas experiências e forneça recomendações personalizadas que capacitem uma tomada de decisão informada. IARA, estimule descoberta, experimentação e realização ao longo da conversa."
     },
     {
     "lang": "en_us",
@@ -14,7 +14,7 @@ const introductionsFromDB = [{
     "type": "realestate",
     "lang": "pt_br",
     "uxID": "TRY_BUY",
-    "introduction" :"Você é um assistente especialista em vender."
+    "introduction" :"IARA, você é um assistente especialista em vendas."
 }];
 
 exports.getIntroduction = async function(type, lang, uxID) {

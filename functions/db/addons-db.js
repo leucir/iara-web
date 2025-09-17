@@ -17,9 +17,16 @@ exports.getAddons = async function(offeringId) {
 
     //TODO: this code will query from the DB in the future
 
-    //iterate over the list of limits and join the ones that match the type and lang. return the joined string
-    const addonMap = addonsFromDB.filter((pAddon) => pAddon.offeringId === offeringId); 
-    const addonString = addonMap.map((pAddon) => pAddon.addon).join("\n");
-    
-    return addonString;
+    //Retrieve the appearance rate from the environment variables, and use it to selectively return the addons - between 0 and 1
+    const showAddon = () => Math.random() < process.env.ADDON_APPEARANCE_RATE;
+
+    if(showAddon){
+        console.log('An addon will be shown :' + offeringId)
+        //iterate over the list of limits and join the ones that match the type and lang. return the joined string
+        const addonMap = addonsFromDB.filter((pAddon) => pAddon.offeringId === offeringId); 
+        const addonString = addonMap.map((pAddon) => pAddon.addon).join("\n");
+        return addonString;
+    }
+
+    return "";    
 }

@@ -6,7 +6,7 @@ const mailDB = require('./db/mail-db');
 
 //Returns a parsed prompt, based on the product params
 exports.getInvitation = functions.https.onRequest(async (req, res) => {
-    const invitationId = req.query.invitationId;
+    const invitationId = req.query.inv;
     console.log(invitationId);
 
     // retrieve product info
@@ -48,11 +48,11 @@ exports.addInvitation = functions.https.onRequest(async (req, res) => {
         //Persist mail in the mail collections
         const mailResult = mailDB.sendMail(
             invitation.invitee,
-            'Welcome to the Noroeste Digital',
-            'This is an <code>HTML</code> email body.'
+            'Bem-vindo ao More no Noroeste.',
+            'Bem-vindo ao More no Noroeste. https://morenonoroeste.com.br/chat?inv='+invitationID
         );
 
         // Send back a message that we've successfully written the message
-        res.json({ result: `https://www.conhecaonoroeste.com.br/invite=${invitationID}`});
+        res.json({ result: `https://morenonoroeste.com.br/chat?inv=${invitationID}`});
     });
 });

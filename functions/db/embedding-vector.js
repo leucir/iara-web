@@ -38,17 +38,17 @@ const readEmbeddings = async (sentence, indexName, numResponses=3) => {
 };
 
 
-const queryEmbeddings = async (pContext, pEntityName, pQuery, numResponses=3) => {
-    console.log(`\x1b[32mRetrieving embeddings for ${pContext.offering.offeringID} ${pContext.offering.domainType}.\x1b[0m`);
+const queryEmbeddings = async (offeringID, domainType, pEntityName, pQuery, numResponses=3) => {
+    console.log(`\x1b[32mRetrieving embeddings for ${offeringID} ${domainType}.\x1b[0m`);
 
-    indexName = pContext.offering.offeringID + '_' + pContext.offering.domainType + '_' + pEntityName;
+    indexName = offeringID + '_' + domainType + '_' + pEntityName;
     const qResults = await readEmbeddings(pQuery, indexName, numResponses);
 
     return qResults;
 };
 
 //Create an async function to write embeddings to the vectra index
-const writeEmbeddings = async (text, indexName) => {
+const writeEmbeddings = async (text, indexName, uniqueId) => {
 
     // Create local index
     const index = new LocalIndex(path.join(__dirname,'..', EMBEDDING_INDEX_FOLDER, indexName));
@@ -63,7 +63,7 @@ const writeEmbeddings = async (text, indexName) => {
     // Add the text to the index
     await index.insertItem({
         vector,
-        metadata: { text }
+        metadata: { uniqueId, text }
     });
 
 };
@@ -82,9 +82,21 @@ const createEmbeddings = async (fullPath, indexNamePrefix) => {
 
         //write a code that will split the text into sentences using the EMBEDDING_SEPARATOR, and write each sentence to the vectra index
         const sentences = text.split(EMBEDDING_SEPARATOR);
-
+        
         for (const sentence of sentences) {
-            await writeEmbeddings(sentence, indexName);
+
+            //extract the PR_* (prod ID) from the sentence, delimited by [[ and ]], and use it as the uniqueId. Keep the rest of the sentence as the text
+            var uniqueId = sentence.substring(sentence.indexOf('[[') + 2, sentence.indexOf(']]'));
+            const transformedSentence = sentence.substring(sentence.indexOf(']]') + 2);
+
+            //if the sentence doesn't have a PROD_ID, then use the whole sentence as the uniqueId
+            if (!uniqueId.startsWith('PR_')) {
+                uniqueId = "NOT_FOUND";
+            }else{
+                console.log("PROD_ID loaded: " + uniqueId);
+                console.log("Sentence loaded: " + transformedSentence);
+            }
+            await writeEmbeddings(transformedSentence, indexName, uniqueId);
         }
 
         const tokens = await countTokens(text);
@@ -104,12 +116,12 @@ const countTokens = (async (text) => {
 });
 
 //Function to refresh the embeddings
-const refreshEmbeddings = async (pContext) => {
-    console.log(`\x1b[32mRefreshing embeddings for ${pContext.offering.offeringID} ${pContext.offering.domainType}.\x1b[0m`);
+const refreshEmbeddings = async (offeringID, domainType) => {
+    console.log(`\x1b[32mRefreshing embeddings for ${offeringID} ${domainType}.\x1b[0m`);
 
-    dataFullPath = getEmbeddingsDataFullPath(pContext);
+    dataFullPath = getEmbeddingsDataFullPath(offeringID, domainType);
 
-    indexNamePrefix = pContext.offering.offeringID + '_' + pContext.offering.domainType;
+    indexNamePrefix = offeringID + '_' + domainType;
     createEmbeddings(dataFullPath, indexNamePrefix);
 };
 
@@ -120,9 +132,9 @@ const removeExtension = (filename) => {
 };
 
 //Util function to get the full path of the embeddings
-const getEmbeddingsDataFullPath = (pContext) => {
-    console.log(`\x1b[32mGetting embeddings data full path for ${pContext.offering.offeringID} ${pContext.offering.domainType}.\x1b[0m`);
-    return path.join(__dirname,'..',EMBEDDING_DATA_FOLDER, pContext.offering.offeringID, pContext.offering.domainType);
+const getEmbeddingsDataFullPath = (offeringID, domainType) => {
+    console.log(`\x1b[32mGetting embeddings data full path for ${offeringID} ${domainType}.\x1b[0m`);
+    return path.join(__dirname,'..',EMBEDDING_DATA_FOLDER, offeringID, domainType);
 };
 
 exports.queryEmbeddings = queryEmbeddings;
