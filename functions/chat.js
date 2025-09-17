@@ -229,8 +229,8 @@ exports.chat2 = functions.https.onRequest(async (req, res) => {
           config: {
             region: "us-east-1",
             credentials: {
-              accessKeyId: "AKIAYFVQFYTJSU4SKO5R",
-              secretAccessKey: "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",
+              accessKeyId: "",
+              secretAccessKey: "",
             },
           },
         }),
